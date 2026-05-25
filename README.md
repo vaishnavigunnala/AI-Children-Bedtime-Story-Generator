@@ -122,5 +122,5 @@ npm run dev
 
 ## Demo Video
 
-[Watch Demo](https://drive.google.com/file/d/1sUqltmELkTYC0e7FrbkyYFl1fuHD-B7x/view?usp=drive_link)
+[Watch Demo](https://drive.google.com/file/d/1sUqLtmELkTYC0e7FrbkyYFIlfuHD-B7x/view?usp=drive_link)
 
