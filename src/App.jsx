@@ -293,49 +293,6 @@ export default function App() {
   }
 }
 
-  async function continueStory() {
-    if (!canSave) return;
-    setStatus("continuing");
-    setError("");
-    setNotice("");
-    setCopied(false);
-    stopNarration();
-    setIllustration(emptyIllustration);
-    setIllustrationStatus("idle");
-
-    try {
-      const response = await fetch("/api/story/continue", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...form,
-          title: story.title,
-          story: story.story,
-          moral: story.moral
-        })
-      });
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Could not continue the story.");
-      }
-
-      const nextStory = {
-        ...data,
-        continuationCount: (story.continuationCount || 0) + 1
-      };
-      setStory(nextStory);
-      setStatus("done");
-      if (data.notice) {
-        setNotice(data.notice);
-      }
-      setActiveView("studio");
-      generateIllustration(nextStory);
-    } catch (storyError) {
-      setError(storyError.message);
-      setStatus("error");
-    }
-  }
 
   async function copyStory() {
     const text = `${story.title}\n\n${story.story}\n\nMoral: ${story.moral}`;
@@ -613,8 +570,8 @@ export default function App() {
                     <article className="library-card" key={savedStoryKey(item)}>
                       {item.illustration?.imageUrl ? (
                         <img
-  src={illustration?.imageUrl || "https://picsum.photos/800/500"}
-  alt={`Illustration for ${story?.title}`}
+  src={item?.illustration?.imageUrl || "https://picsum.photos/800/500"}
+  alt={`Illustration for ${item?.title}`}
   style={{
     width: "100%",
     height: "400px",
@@ -691,9 +648,6 @@ export default function App() {
                 <div className="actions">
                   <button onClick={copyStory} type="button">{copied ? "Copied" : "Copy"}</button>
                   <button onClick={generateStory} type="button">Regenerate</button>
-                  <button disabled={status === "continuing"} onClick={continueStory} type="button">
-                    {status === "continuing" ? "Continuing..." : "Continue story"}
-                  </button>
                   <button disabled={!canSave} onClick={saveStory} type="button">Save</button>
                 </div>
                 <div className="narration-panel">

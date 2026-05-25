@@ -4,9 +4,9 @@ import express from "express";
 import OpenAI from "openai";
 import axios from "axios";
 import Replicate from "replicate";
-import { createFallbackContinuation, createFallbackStory } from "./fallbackGenerator.js";
+import { createFallbackStory } from "./fallbackGenerator.js";
 import { createFallbackIllustration } from "./illustrationGenerator.js";
-import { buildContinuationPrompt, buildIllustrationPrompt, buildStoryPrompt } from "./promptBuilder.js";
+import { buildIllustrationPrompt, buildStoryPrompt } from "./promptBuilder.js";
 import { findUnsafeTerms, normalizeLength, sanitizeInput, sanitizeLongText } from "./storyRules.js";
 
 dotenv.config();
@@ -260,55 +260,6 @@ app.post("/api/story", async (request, response) => {
   }
 });
 
-app.post("/api/story/continue", async (request, response) => {
-  const payload = {
-    ageGroup: sanitizeInput(request.body.ageGroup, "6-8"),
-    childName: sanitizeInput(request.body.childName, ""),
-    character: sanitizeInput(request.body.character, "brave rabbit"),
-    theme: sanitizeInput(request.body.theme, "friendship"),
-    length: normalizeLength(request.body.length),
-    title: sanitizeInput(request.body.title, "A gentle bedtime story"),
-    story: sanitizeLongText(request.body.story, ""),
-    moral: sanitizeInput(request.body.moral, "Kindness matters.")
-  };
-
-  if (!payload.story) {
-    return response.status(400).json({
-      message: "Generate a story before asking for a continuation."
-    });
-  }
-
-  const unsafeTerms = findUnsafeTerms(payload);
-  if (unsafeTerms.length > 0) {
-    return response.status(400).json({
-      message: "Please continue with softer bedtime-friendly details.",
-      unsafeTerms
-    });
-  }
-
-  if (!getTextClient()) {
-    return response.json(createFallbackContinuation(payload));
-  }
-
-  try {
-    const prompt = buildContinuationPrompt(payload);
-    const result = await generateProviderStory(prompt);
-    response.json({ ...result.story, source: result.source });
-  } catch (error) {
-    console.error(error);
-    if (isOpenAiRecoverableError(error)) {
-      return response.json({
-        ...createFallbackContinuation(payload),
-        source: "local-fallback",
-        notice: providerFallbackNotice(error)
-      });
-    }
-
-    response.status(500).json({
-      message: "The story engine had trouble continuing that story. Please try again."
-    });
-  }
-});
 
 app.post("/api/illustration", async (request, response) => {
 
